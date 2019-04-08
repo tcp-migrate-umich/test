@@ -5,6 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "helpers.h"
+
 /**
  * TCP Uses 2 types of sockets, the connection socket and the listen socket.
  * The Goal is to separate the connection phase from the data exchange phase.
@@ -13,6 +15,10 @@
 int main(int argc, char *argv[]) {
 	// port to start the server on
 	int SERVER_PORT = 8877;
+
+	if (argc > 1) {
+		SERVER_PORT = atoi(argv[1]);
+	}
 
 	// socket address used for the server
 	struct sockaddr_in server_address;
@@ -30,6 +36,17 @@ int main(int argc, char *argv[]) {
 	int listen_sock;
 	if ((listen_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("could not create listen socket\n");
+		return 1;
+	}
+
+	// if migration not enabled on the listener, enable it
+	bool enabled;
+	if (is_migrate_enabled(listen_sock, &enabled)) {
+		puts("could not check migrate_enabled on listen sock");
+		return 1;
+	}
+	if (!enabled && set_migrate_enabled(listen_sock, true)) {
+		puts("could not set migrate_enabled on listen sock");
 		return 1;
 	}
 
@@ -66,10 +83,28 @@ int main(int argc, char *argv[]) {
 		int n = 0;
 		int len = 0, maxlen = 100;
 		char buffer[maxlen];
+		memset(buffer, 0, sizeof(buffer));
 		char *pbuffer = buffer;
 
 		printf("client connected with ip address: %s\n",
 		       inet_ntoa(client_address.sin_addr));
+
+		// Check if connection is migrate enabled,
+		// and if so, print out its migrate token
+		if (is_migrate_enabled(sock, &enabled)) {
+			puts("could not check migrate_enabled of connection sock");
+			return 1;
+		}
+		if (enabled) {
+			int token;
+			if (get_migrate_token(sock, &token)) {
+				puts("could not get token of connection");
+				return 1;
+			}
+			printf("\tconnection has migrate token: %i\n", token);
+		} else {
+			printf("\tconnection does not permit migration\n");
+		}
 
 		// keep running as long as the client keeps the connection open
 		while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {

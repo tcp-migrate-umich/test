@@ -1,13 +1,29 @@
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <linux/tcp.h>
 #include <unistd.h>
 
-int main() {
+#include "helpers.h"
+
+int main(int argc, char **argv) {
 	const char* server_name = "141.212.110.206";
-	const int server_port = 8877;
+	int server_port = 8877;
+
+	// data that will be sent to the server
+	const char* data_to_send = "Gangadhar Hi Shaktimaan hai";
+
+	if (argc > 1) {
+		server_name = argv[1];
+	}
+	if (argc > 2) {
+		server_port = atoi(argv[2]);
+	}
+	if (argc > 3) {
+		data_to_send = argv[3];
+	}
 
 	struct sockaddr_in server_address;
 	memset(&server_address, 0, sizeof(server_address));
@@ -28,11 +44,28 @@ int main() {
 		return 1;
 	}
 
-	/* check token works? */
-	uint32_t token = 1234567;
+	// if migration not enabled on client sock, enable it
+	bool enabled;
+	if (is_migrate_enabled(sock, &enabled)) {
+		puts("could not check migrate_enabled on client");
+		return 1;
+	}
+	if (!enabled && set_migrate_enabled(sock, true)) {
+		puts("could not enable migration on client");
+		return 1;
+	}
+
+	// set the migration token of the client
+	int token = 1234567;
+	/*
 	if (setsockopt(sock, SOL_SOCKET, TCP_MIGRATE_ENABLED, &token, sizeof(uint32_t)) < 0) {
 		printf("setsockopt(SO_REUSEADDR) failed");
 		return -1;
+	}
+	*/
+	if (set_migrate_token(sock, token)) {
+		puts("could not set migrate token of client");
+		return 1;
 	}
 
 
@@ -46,8 +79,6 @@ int main() {
 
 	// send
 
-	// data that will be sent to the server
-	const char* data_to_send = "Gangadhar Hi Shaktimaan hai";
 	send(sock, data_to_send, strlen(data_to_send), 0);
 
 	// receive
@@ -55,9 +86,13 @@ int main() {
 	int n = 0;
 	int len = 0, maxlen = 100;
 	char buffer[maxlen];
+	memset(buffer, 0, sizeof(buffer));
 	char* pbuffer = buffer;
 
-	// will remain open until the server terminates the connection
+	// will remain open until the server echos back the content
+	recv(sock, pbuffer, maxlen, 0);
+	printf("received: '%s'\n", buffer);
+	/*
 	while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
 		pbuffer += n;
 		maxlen -= n;
@@ -66,6 +101,7 @@ int main() {
 		buffer[len] = '\0';
 		printf("received: '%s'\n", buffer);
 	}
+	*/
 
 	// close the socket
 	close(sock);
