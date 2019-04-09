@@ -31,11 +31,17 @@ int main(int argc, char *argv[]) {
 
 	// htonl: host to network long: same as htons but to long
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	// create a TCP socket, creation returns -1 on failure
+	
+	// create a TCP socket, creation returns -1 on failure int listen_sock;
 	int listen_sock;
 	if ((listen_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("could not create listen socket\n");
+		return 1;
+	}
+
+	// check TCP fastopen options (im just curious)
+	if (check_tcp_fastopen(listen_sock)) {
+		printf("could not check tcp fastopen options on listen socket");
 		return 1;
 	}
 
@@ -91,12 +97,17 @@ int main(int argc, char *argv[]) {
 
 		// Check if connection is migrate enabled,
 		// and if so, print out its migrate token
+		// (we can't do this immediately after the
+		// connect call because of TCP Fastopen;
+		// the final ACK in the three-way handshake
+		// may not have been received by the time
+		// we start recv-ing or send-ing).
 		if (is_migrate_enabled(sock, &enabled)) {
 			puts("could not check migrate_enabled of connection sock");
 			return 1;
 		}
 		if (enabled) {
-			int token;
+			int token = 696969;
 			if (get_migrate_token(sock, &token)) {
 				puts("could not get token of connection");
 				return 1;

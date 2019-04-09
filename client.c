@@ -43,6 +43,12 @@ int main(int argc, char **argv) {
 		printf("could not create socket\n");
 		return 1;
 	}
+	
+	// check TCP fastopen options (im just curious)
+	if (check_tcp_fastopen(sock)) {
+		printf("could not check tcp fastopen options on client socket");
+		return 1;
+	}
 
 	// if migration not enabled on client sock, enable it
 	bool enabled;
