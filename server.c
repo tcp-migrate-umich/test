@@ -119,14 +119,13 @@ int main(int argc, char *argv[]) {
 
 		// keep running as long as the client keeps the connection open
 		while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
-			pbuffer += n;
-			maxlen -= n;
-			len += n;
-
 			printf("received: '%s'\n", buffer);
 
 			// echo received content back
-			send(sock, buffer, len, 0);
+			send(sock, buffer, n, 0);
+
+			memset(buffer, 0, sizeof(buffer));
+			len = 0;
 		}
 
 		close(sock);

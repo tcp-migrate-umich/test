@@ -11,18 +11,29 @@
 int main(int argc, char **argv) {
 	const char* server_name = "141.212.110.206";
 	int server_port = 8877;
+	int num_times = 1;
+	int wait_time = 3;
 
 	// data that will be sent to the server
 	const char* data_to_send = "Gangadhar Hi Shaktimaan hai";
 
+	if (argc <= 1) {
+		printf("Usage: ./client [num_times] [server_name] [server_port] [wait_time] [data_to_send]\n");
+	}
 	if (argc > 1) {
-		server_name = argv[1];
+		num_times = atoi(argv[1]);
 	}
 	if (argc > 2) {
-		server_port = atoi(argv[2]);
+		server_name = argv[2];
 	}
 	if (argc > 3) {
-		data_to_send = argv[3];
+		server_port = atoi(argv[3]);
+	}
+	if (argc > 4) {
+		wait_time = atoi(argv[4]);
+	}
+	if (argc > 5) {
+		data_to_send = argv[5];
 	}
 
 	struct sockaddr_in server_address;
@@ -83,31 +94,37 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	// send
+	for (int i = 0; i < num_times; i++) {
+		if (i != 0) {
+			sleep(wait_time);
+		}
 
-	send(sock, data_to_send, strlen(data_to_send), 0);
+		// send
+		send(sock, data_to_send, strlen(data_to_send), 0);
 
-	// receive
+		// receive
 
-	int n = 0;
-	int len = 0, maxlen = 100;
-	char buffer[maxlen];
-	memset(buffer, 0, sizeof(buffer));
-	char* pbuffer = buffer;
+		int n = 0;
+		int len = 0, maxlen = 100;
+		char buffer[maxlen];
+		memset(buffer, 0, sizeof(buffer));
+		char* pbuffer = buffer;
 
-	// will remain open until the server echos back the content
-	recv(sock, pbuffer, maxlen, 0);
-	printf("received: '%s'\n", buffer);
-	/*
-	while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
-		pbuffer += n;
-		maxlen -= n;
-		len += n;
-
-		buffer[len] = '\0';
+		// will remain open until the server echos back the content
+		recv(sock, pbuffer, maxlen, 0);
 		printf("received: '%s'\n", buffer);
+		/*
+		while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
+			pbuffer += n;
+			maxlen -= n;
+			len += n;
+
+			buffer[len] = '\0';
+			printf("received: '%s'\n", buffer);
+		}
+		*/
+
 	}
-	*/
 
 	// close the socket
 	close(sock);

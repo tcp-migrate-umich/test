@@ -1,4 +1,5 @@
 client
 server
+migrated_server
 *.swp
 *.swo
