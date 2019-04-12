@@ -97,13 +97,22 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	if (close_on_kill(sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
+
+	char buffer[1000];
 	for (int i = 0; i < num_times || do_forever; i++) {
 		if (i != 0) {
 			sleep(wait_time);
 		}
 
+		memset(buffer, 0, sizeof(buffer));
+		sprintf(buffer, "[%i] %s", i, data_to_send);
+
 		// send
-		send(sock, data_to_send, strlen(data_to_send), 0);
+		send(sock, buffer, strlen(buffer), 0);
 
 		// receive
 

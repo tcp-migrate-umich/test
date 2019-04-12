@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
 	if (bind(sock, (struct sockaddr *)&server_address, sizeof(server_address)))
 		return 1;
 
-
 	printf("connecting socket to client at %s:%i\n", CLIENT_ADDR, CLIENT_PORT);
 
 	struct sockaddr_in client_address;
@@ -82,6 +81,10 @@ int main(int argc, char **argv) {
 	if (connect(sock, (struct sockaddr *)&client_address, sizeof(client_address)))
 		return 1;
 
+	if (close_on_kill(sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
 
 	puts("send migrate request");
 	int err = send_migrate_request(sock);

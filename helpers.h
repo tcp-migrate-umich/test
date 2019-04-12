@@ -5,8 +5,23 @@
 //#include <netinet/tcp.h>
 #include <linux/tcp.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #define SOL_TCP 6
+
+static int the_sock;
+
+void intHandler(int dummy) {
+	close(the_sock);
+	exit(0);
+}
+
+int close_on_kill(int sock) {
+	the_sock = sock;
+	int err = 0;
+	err = signal(SIGINT, intHandler) == SIG_ERR;
+	return err;
+}
 
 int repair_on(int sock) {
 	int val = 1;

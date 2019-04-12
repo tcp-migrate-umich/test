@@ -70,6 +70,11 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	if (close_on_kill(listen_sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
+
 	// socket address used to store client address
 	struct sockaddr_in client_address;
 	int client_address_len = 0;
@@ -114,6 +119,11 @@ int main(int argc, char *argv[]) {
 			printf("\tconnection has migrate token: %i\n", token);
 		} else {
 			printf("\tconnection does not permit migration\n");
+		}
+
+		if (close_on_kill(sock)) {
+			perror("could not set up inthandler");
+			return 1;
 		}
 
 		// keep running as long as the client keeps the connection open
