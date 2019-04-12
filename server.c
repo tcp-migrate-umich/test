@@ -31,9 +31,8 @@ int main(int argc, char *argv[]) {
 
 	// htonl: host to network long: same as htons but to long
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	
 	// create a TCP socket, creation returns -1 on failure int listen_sock;
-	int listen_sock;
+	int listen_sock; 
 	if ((listen_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("could not create listen socket\n");
 		return 1;
@@ -128,7 +127,11 @@ int main(int argc, char *argv[]) {
 			len = 0;
 		}
 
-		close(sock);
+		puts("closing connection");
+		if (close(sock)) {
+			perror("could not close socket");
+			return 1;
+		}
 	}
 
 	close(listen_sock);

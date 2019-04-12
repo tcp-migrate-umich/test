@@ -93,5 +93,29 @@ int main(int argc, char **argv) {
 	if (repair_off(sock))
 		return 1;
 	
+	// keep running as long as the client keeps the connection open
+	int n = 0;
+	int len = 0, maxlen = 100;
+	char buffer[maxlen];
+	memset(buffer, 0, sizeof(buffer));
+	char *pbuffer = buffer;
+	//while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
+	while (true) {
+		n = recv(sock, pbuffer, maxlen, 0);
+
+		if (n == 0)
+			continue;
+
+		printf("received: '%s'\n", buffer);
+
+		// echo received content back
+		send(sock, buffer, n, 0);
+
+		memset(buffer, 0, sizeof(buffer));
+		len = 0;
+	}
+
+	close(sock);
+
 	return 0;
 }
