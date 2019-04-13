@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 	int client_address_len = 0;
 
 	// run indefinitely
+	fflush(stdout);
 	while (true) {
 		// open a new socket to transmit data per connection
 		int sock;
@@ -129,6 +130,7 @@ int main(int argc, char *argv[]) {
 		// keep running as long as the client keeps the connection open
 		while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
 			printf("received: '%s'\n", buffer);
+			fflush(stdout);
 
 			// echo received content back
 			send(sock, buffer, n, 0);
