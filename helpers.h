@@ -20,6 +20,7 @@ int close_on_kill(int sock) {
 	the_sock = sock;
 	int err = 0;
 	err = signal(SIGINT, intHandler) == SIG_ERR;
+	err |= signal(SIGTERM, intHandler) == SIG_ERR;
 	return err;
 }
 
