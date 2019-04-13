@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
 	if (bind(sock, (struct sockaddr *)&server_address, sizeof(server_address)))
 		return 1;
 
-
 	printf("connecting socket to client at %s:%i\n", CLIENT_ADDR, CLIENT_PORT);
 
 	struct sockaddr_in client_address;
@@ -82,6 +81,10 @@ int main(int argc, char **argv) {
 	if (connect(sock, (struct sockaddr *)&client_address, sizeof(client_address)))
 		return 1;
 
+	if (close_on_kill(sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
 
 	puts("send migrate request");
 	int err = send_migrate_request(sock);
@@ -93,5 +96,29 @@ int main(int argc, char **argv) {
 	if (repair_off(sock))
 		return 1;
 	
+	// keep running as long as the client keeps the connection open
+	int n = 0;
+	int len = 0, maxlen = 100;
+	char buffer[maxlen];
+	memset(buffer, 0, sizeof(buffer));
+	char *pbuffer = buffer;
+	//while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
+	while (true) {
+		n = recv(sock, pbuffer, maxlen, 0);
+
+		if (n == 0)
+			continue;
+
+		printf("received: '%s'\n", buffer);
+
+		// echo received content back
+		send(sock, buffer, n, 0);
+
+		memset(buffer, 0, sizeof(buffer));
+		len = 0;
+	}
+
+	close(sock);
+
 	return 0;
 }

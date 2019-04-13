@@ -31,9 +31,8 @@ int main(int argc, char *argv[]) {
 
 	// htonl: host to network long: same as htons but to long
 	server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-	
 	// create a TCP socket, creation returns -1 on failure int listen_sock;
-	int listen_sock;
+	int listen_sock; 
 	if ((listen_sock = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("could not create listen socket\n");
 		return 1;
@@ -71,11 +70,17 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	if (close_on_kill(listen_sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
+
 	// socket address used to store client address
 	struct sockaddr_in client_address;
 	int client_address_len = 0;
 
 	// run indefinitely
+	fflush(stdout);
 	while (true) {
 		// open a new socket to transmit data per connection
 		int sock;
@@ -117,9 +122,15 @@ int main(int argc, char *argv[]) {
 			printf("\tconnection does not permit migration\n");
 		}
 
+		if (close_on_kill(sock)) {
+			perror("could not set up inthandler");
+			return 1;
+		}
+
 		// keep running as long as the client keeps the connection open
 		while ((n = recv(sock, pbuffer, maxlen, 0)) > 0) {
 			printf("received: '%s'\n", buffer);
+			fflush(stdout);
 
 			// echo received content back
 			send(sock, buffer, n, 0);
@@ -128,7 +139,11 @@ int main(int argc, char *argv[]) {
 			len = 0;
 		}
 
-		close(sock);
+		puts("closing connection");
+		if (close(sock)) {
+			perror("could not close socket");
+			return 1;
+		}
 	}
 
 	close(listen_sock);

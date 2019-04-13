@@ -13,6 +13,7 @@ int main(int argc, char **argv) {
 	int server_port = 8877;
 	int num_times = 1;
 	int wait_time = 3;
+	bool do_forever = false;
 
 	// data that will be sent to the server
 	const char* data_to_send = "Gangadhar Hi Shaktimaan hai";
@@ -22,6 +23,8 @@ int main(int argc, char **argv) {
 	}
 	if (argc > 1) {
 		num_times = atoi(argv[1]);
+		if (num_times == -1)
+			do_forever = true;
 	}
 	if (argc > 2) {
 		server_name = argv[2];
@@ -94,13 +97,22 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	for (int i = 0; i < num_times; i++) {
+	if (close_on_kill(sock)) {
+		perror("could not set up inthandler");
+		return 1;
+	}
+
+	char buffer[1000];
+	for (int i = 0; i < num_times || do_forever; i++) {
 		if (i != 0) {
 			sleep(wait_time);
 		}
 
+		memset(buffer, 0, sizeof(buffer));
+		sprintf(buffer, "[%i] %s", i, data_to_send);
+
 		// send
-		send(sock, data_to_send, strlen(data_to_send), 0);
+		send(sock, buffer, strlen(buffer), 0);
 
 		// receive
 
