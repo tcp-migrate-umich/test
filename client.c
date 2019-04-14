@@ -78,15 +78,16 @@ int main(int argc, char **argv) {
 	// set the migration token of the client
 	int token = 1234567;
 	/*
-	if (setsockopt(sock, SOL_SOCKET, TCP_MIGRATE_ENABLED, &token, sizeof(uint32_t)) < 0) {
-		printf("setsockopt(SO_REUSEADDR) failed");
-		return -1;
-	}
-	*/
 	if (set_migrate_token(sock, token)) {
 		puts("could not set migrate token of client");
 		return 1;
 	}
+	*/
+	if (get_migrate_token(sock, &token)) {
+		puts("could not get migrate token of client");
+		return 1;
+	}
+	printf("Client has migrate token %i\n", token);
 
 
 	// TCP is connection oriented, a reliable connection

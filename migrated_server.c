@@ -34,19 +34,6 @@ int main(int argc, char **argv) {
 	if (repair_on(sock))
 		return 1;
 
-	puts("enabling migrate and setting migrate token");
-	int token = 1234567;
-	if (set_migrate_enabled(sock, true))
-		return 1;
-	if (__set_migrate_token(sock, token))
-		return 1;
-
-	printf("Setting snd_seq=%i, rcv_seq=%i\n", snd_seq, rcv_seq);
-	if (set_seqs(sock, snd_seq, rcv_seq)) {
-		return 1;
-	}
-
-
 	puts("binding sock");
 	
 	// socket address used for the server
@@ -81,16 +68,24 @@ int main(int argc, char **argv) {
 	if (connect(sock, (struct sockaddr *)&client_address, sizeof(client_address)))
 		return 1;
 
+	puts("enabling migrate and setting migrate token");
+	int token = 1234567;
+	if (set_migrate_enabled(sock, true))
+		return 1;
+	// this will send the migrate request
+	if (__set_migrate_token(sock, token))
+		return 1;
+
+	printf("Setting snd_seq=%i, rcv_seq=%i\n", snd_seq, rcv_seq);
+	if (set_seqs(sock, snd_seq, rcv_seq)) {
+		return 1;
+	}
+
+
 	if (close_on_kill(sock)) {
 		perror("could not set up inthandler");
 		return 1;
 	}
-
-	puts("send migrate request");
-	int err = send_migrate_request(sock);
-	if (err)
-		return err;
-
 
 	puts("repair off");
 	if (repair_off(sock))
