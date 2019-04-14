@@ -43,18 +43,7 @@ int main(int argc, char *argv[]) {
 		printf("could not check tcp fastopen options on listen socket");
 		return 1;
 	}
-
-	// if migration not enabled on the listener, enable it
-	bool enabled;
-	if (is_migrate_enabled(listen_sock, &enabled)) {
-		puts("could not check migrate_enabled on listen sock");
-		return 1;
-	}
-	if (!enabled && set_migrate_enabled(listen_sock, true)) {
-		puts("could not set migrate_enabled on listen sock");
-		return 1;
-	}
-
+	
 	// bind it to listen to the incoming connections on the created server
 	// address, will return -1 on error
 	if ((bind(listen_sock, (struct sockaddr *)&server_address,
@@ -99,7 +88,7 @@ int main(int argc, char *argv[]) {
 
 		printf("client connected with ip address: %s\n",
 		       inet_ntoa(client_address.sin_addr));
-
+/*
 		// Check if connection is migrate enabled,
 		// and if so, print out its migrate token
 		// (we can't do this immediately after the
@@ -121,7 +110,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			printf("\tconnection does not permit migration\n");
 		}
-
+*/
 		if (close_on_kill(sock)) {
 			perror("could not set up inthandler");
 			return 1;

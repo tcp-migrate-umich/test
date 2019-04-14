@@ -64,32 +64,6 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	// if migration not enabled on client sock, enable it
-	bool enabled;
-	if (is_migrate_enabled(sock, &enabled)) {
-		puts("could not check migrate_enabled on client");
-		return 1;
-	}
-	if (!enabled && set_migrate_enabled(sock, true)) {
-		puts("could not enable migration on client");
-		return 1;
-	}
-
-	// set the migration token of the client
-	int token = 1234567;
-	/*
-	if (set_migrate_token(sock, token)) {
-		puts("could not set migrate token of client");
-		return 1;
-	}
-	*/
-	if (get_migrate_token(sock, &token)) {
-		puts("could not get migrate token of client");
-		return 1;
-	}
-	printf("Client has migrate token %i\n", token);
-
-
 	// TCP is connection oriented, a reliable connection
 	// **must** be established before any data is exchanged
 	if (connect(sock, (struct sockaddr*)&server_address,
