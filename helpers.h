@@ -143,6 +143,6 @@ int check_tcp_fastopen(int sock) {
 }
 
 int send_migrate_request(int sock) {
-	return system("cat /proc/net/tcp_mig_syn");
+	return system("cat /proc/net/tcp_mig_req_send");
 }
 
