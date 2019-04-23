@@ -1,0 +1,30 @@
+The following are the major components needed to install our project
+
+Kernel
+    Clone our patched repo 
+    Checkout commit 9d6bfe11b1b4e11bc9ed5d8c2de0ae21863a6d6e
+    Follow installation instructions (https://kernelnewbies.org/OutreachyfirstpatchSetup)
+        Be sure to enable options required by CRIU (https://criu.org/Linux_kernel)
+        and our specific option, CONFIG_TCP_MIGRATE
+    Finish installation and restart the computer
+
+CRIU
+    Clone our patched repo
+    Checkout commit 57691708b2fbf49ea9739ebbb5bf9717fc68b91d on branch migrate
+    Use CRIU install instructions to compile from source (https://criu.org/Installation)
+
+NFS
+    Set up an NFS at /nfs/test on both servers (https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-18-04)
+    Make sure you have the same owning UID and GID for the directory
+
+Enable using sudo without typing password (used to make migrator.py work) (https://askubuntu.com/questions/147241/execute-sudo-without-password, answer using visudo)
+
+Test program
+    Clone repo into /nfs/test
+    Make directory /nfs/test/test/dump
+    Run make
+    Run sudo su
+    Run "setsid ./server <port_number> < /dev/null &> server.log"
+    Go to client and run "sudo ./server -1 <server_ip_addr> <port_number> 5 hello_world"
+    Go back to server and run migrator.py to move server from current host to a different host
+
